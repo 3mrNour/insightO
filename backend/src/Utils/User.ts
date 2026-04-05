@@ -1,0 +1,7 @@
+const ADMIN = 'ADMIN';
+const HEAD_OF_DEP = 'HEAD_OF_DEP';
+const INSTRUCTOR = 'INSTRUCTOR';
+const STUDENT = 'STUDENT';
+
+
+export { ADMIN, HEAD_OF_DEP, INSTRUCTOR, STUDENT };
