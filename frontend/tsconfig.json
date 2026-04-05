@@ -2,8 +2,10 @@
   "compilerOptions": {
     "target": "ES2023",
     "useDefineForClassFields": true,
-    "module": "ESNext",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
     "types": ["vite/client"],
     "baseUrl": ".",
     "paths": {
