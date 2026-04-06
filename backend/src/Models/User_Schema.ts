@@ -1,74 +1,45 @@
 import mongoose from 'mongoose';
 
-const userSchema = new mongoose.Schema({
-  // 1. المعلومات الأساسية
-  fullName: {
-    type: String,
-    required: [true, 'Please provide your full name'],
-    trim: true
-  },
-  email: {
-    type: String,
-    required: [true, 'Please provide your email'],
-    unique: true,
-    lowercase: true,
-    trim: true
-  },
-  password: {
-    type: String,
-    required: [true, 'Please provide a password'],
-    minlength: 8,
-    select: false // عشان الباسورد ميرجعش تلقائياً في الـ Queries
-  },
 
-  // 2. المحرك الأساسي (System Logic)
+const {UserSchema} = require('../Utils/User');
+
+const user_Schema = new mongoose.Schema({
+  firstName: { type: String, required: true, trim: true },
+  lastName: { type: String, required: true, trim: true },
+  email: { type: String, required: true, unique: true, lowercase: true },
+  password: { type: String, required: true, minlength: 8, select: false },
+  phone: { type: Number }, 
+  address: { type: String },
+  nationalId: { type: Number, unique: true, required: true }, 
+  
   role: {
     type: String,
-    enum: ['super-admin', 'sub-admin', 'employee'],
-    default: 'employee'
+    enum: [UserSchema.ADMIN, UserSchema.HEAD_OF_DEP, UserSchema.INSTRUCTOR, UserSchema.STUDENT],
+    required: true
   },
 
-  // 3. التدرج الوظيفي (Hierarchy)
-  department: {
-    type: String,
-    required: [true, 'User must belong to a department']
-  },
-  manager: {
+
+
+  departmentId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // الموظف والـ Sub-admin ليهم مدير
-    default: null
+    ref: 'Department', 
+    required: function() { return this.role !== UserSchema.ADMIN; } 
   },
 
-  // 4. مقاييس الأداء (Performance Logic)
-  performanceScore: {
+
+  
+  academicYear: {
     type: Number,
-    min: 0,
-    max: 100,
-    default: 0
-  },
-  lastEvaluationDate: {
-    type: Date
+    required: function() { return this.role === UserSchema.STUDENT; }
   },
 
-  // 5. حالة الحساب
-  isActive: {
-    type: Boolean,
-    default: true
-  },
 
-  // لغة الواجهة المفضلة
-  preferredLanguage: {
-    type: String,
-    enum: ['ar', 'en'],
-    default: 'en'
-  }
-}, {
-  timestamps: true // بيضيف createdAt و updatedAt تلقائياً
-});
+  profileImg: { type: String, default: 'default-user.png' },
+  isActive: { type: Boolean, default: true }
+}, 
+{ timestamps: true });
 
-// إضافة Index للبحث السريع بالإيميل والقسم
-userSchema.index({ email: 1, department: 1 });
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model('User', user_Schema);
 
 export default User;
