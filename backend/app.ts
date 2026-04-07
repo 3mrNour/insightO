@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import { errorHandler } from './src/middlewares/errorHandler.js';
+import authRoutes from './src/Routes/authRoutes.js';
 
 export function createApp() {
   const app = express();
@@ -10,6 +11,8 @@ export function createApp() {
   app.get('/health', (_req, res) => {
     res.json({ ok: true });
   });
+
+  app.use('/api/v1/auth', authRoutes);
 
   app.use((_req, _res, next) => {
     const err = new Error('Not Found') as Error & { status: number };
