@@ -1,9 +1,11 @@
 import mongoose from 'mongoose';
 
 
-const {UserSchema} = require('../Utils/User');
+
+import {UserSchema} from '../Utils/User.js';
 
 const user_Schema = new mongoose.Schema({
+  
   firstName: { type: String, required: true, trim: true },
   lastName: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true },
@@ -35,7 +37,17 @@ const user_Schema = new mongoose.Schema({
 
 
   profileImg: { type: String, default: 'default-user.png' },
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+
+  otp: {
+    type: String,
+    select: false
+  },
+  otpExpires: {
+    type: Date,
+    select: false
+  }
+
 }, 
 { timestamps: true });
 

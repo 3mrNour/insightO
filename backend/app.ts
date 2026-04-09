@@ -12,7 +12,7 @@ export function createApp() {
     res.json({ ok: true });
   });
 
-  app.use('/api/v1/auth', authRoutes);
+  app.use('/api/', authRoutes);
 
   app.use((_req, _res, next) => {
     const err = new Error('Not Found') as Error & { status: number };

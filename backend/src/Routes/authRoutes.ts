@@ -1,11 +1,14 @@
 import express from 'express';
-import { register, login } from '../Controllers/authController.js';
+import { register, login,forgotPassword,verifyOTP } from '../Controllers/authController.js';
 import { protect, authorizeRoles } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
 router.post('/register', register);
 router.post('/login', login);
+router.post('/forgotPassword', forgotPassword);
+router.post('/verifyOTP', verifyOTP); 
+
 
 router.get('/profile', protect, (req, res) => {
   res.status(200).json({

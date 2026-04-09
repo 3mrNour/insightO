@@ -3,6 +3,7 @@ import { createApp } from './app.js';
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 
+dotenv.config({ quiet: true });
 
 dotenv.config();
 
@@ -14,7 +15,7 @@ mongoose.connect(MONGO_URI)
 
 
 
-const port = Number(process.env.PORT) || 3000;
+const port = Number(process.env.PORT) || 5000;
 
 const app = createApp();
 app.listen(port, () => {
