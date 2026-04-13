@@ -3,6 +3,7 @@ import { Toaster, toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { ThemeToggle } from '@/shared/components/ui/ThemeToggle'
 import { Modal } from '@/shared/components/ui/Modal'
+import { MainLayout } from './layout/MainLayout'
 
 // ─── Dev Showcase (remove when building real features) ─────────────────────── للتست مش اكتر حاجات جلوبال الل هنستخدمها فى كل حتة يا امبيسا 
 
@@ -119,10 +120,10 @@ function DevShowcase() {
 function App() {
   return (
     <>
-      <DevShowcase />
+      {/* <DevShowcase /> */}
 
       {/* ── Sonner Toaster ─────────────────────────────────────── */}
-      <Toaster
+      {/* <Toaster
         position="top-right"
         richColors
         theme="dark"
@@ -131,7 +132,8 @@ function App() {
             fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
           },
         }}
-      />
+      /> */}
+      <MainLayout />
     </>
   )
 }
