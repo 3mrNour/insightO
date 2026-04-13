@@ -10,6 +10,7 @@ const user_Schema = new mongoose.Schema({
   lastName: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true },
   password: { type: String, required: true, minlength: 8, select: false },
+  confirmPassword: { type: String, select: false },
   phone: { type: Number }, 
   address: { type: String },
   nationalId: { type: Number, unique: true, required: true }, 
@@ -38,6 +39,9 @@ const user_Schema = new mongoose.Schema({
 
   profileImg: { type: String, default: 'default-user.png' },
   isActive: { type: Boolean, default: true },
+
+  
+  isVerified: { type: Boolean, default: false },
 
   otp: {
     type: String,
