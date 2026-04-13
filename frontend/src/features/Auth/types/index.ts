@@ -1,29 +1,36 @@
+export const USER_ROLES = ['ADMIN', 'HEAD_OF_DEP', 'INSTRUCTOR', 'STUDENT'] as const;
+export type UserRole = (typeof USER_ROLES)[number];
 
 export interface User {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  role?: string;        
-  token?: string;       
+  role: UserRole;
 }
-
 
 export interface LoginPayload {
   email: string;
   password: string;
 }
 
-
 export interface RegisterPayload {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
-  confirmPassword?: string;
+  nationalId: number;
+  role: UserRole;
+  departmentId?: string;
+  academicYear?: number;
 }
 
-
 export interface AuthResponse {
+  message: string;
+  token: string;
   user: User;
-  accessToken: string;
-  refreshToken?: string;
+}
+
+export interface ApiMessage {
+  message: string;
 }

@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 
 
-import {UserSchema} from '../Utils/User.js';
+import {UserSchema} from '../utils/User.js';
 
 const user_Schema = new mongoose.Schema({
   

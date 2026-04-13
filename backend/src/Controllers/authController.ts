@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
-import User from '../Models/User_Schema.js';
+import User from '../models/User_Schema.js';
 import jwt from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
-import sendEmail from '../Utils/Email.js';
+import sendEmail from '../utils/Email.js';
 
 
 

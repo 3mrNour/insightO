@@ -26,8 +26,11 @@ const axiosApi:AxiosInstance = axios.create({ baseURL: import.meta.env.VITE_API_
     axiosApi.interceptors.response.use( (res)=>{
         return res;
     }, (error:AxiosError)=>{
-        if(error.response?.status === 401){
+        const url = error.config?.url ?? '';
+        const isAuthRoute = /^\/(login|register)/.test(url);
+        if(error.response?.status === 401 && !isAuthRoute){
             localStorage.removeItem("token");
+            localStorage.removeItem("user");
             window.location.href = "/login";
         }
         return Promise.reject(error);
