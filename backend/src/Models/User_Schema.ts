@@ -1,8 +1,6 @@
 import mongoose from 'mongoose';
 
-
-
-import {UserSchema} from '../utils/User.js';
+import {UserSchema} from '../Utils/User.js';
 
 const user_Schema = new mongoose.Schema({
   

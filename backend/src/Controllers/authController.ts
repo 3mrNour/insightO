@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
-import User from '../models/User_Schema.js';
+import User from '../Models/User_Schema.js';
 import jwt from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
-import sendEmail from '../utils/Email.js';
+import sendEmail from '../Utils/Email.js';
 
 const generateToken = (id: string, role: string) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET || 'fallback_secret', {
