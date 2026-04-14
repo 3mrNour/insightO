@@ -1,6 +1,6 @@
-export const UserSchema = {
-  ADMIN: 'ADMIN',
-  HEAD_OF_DEP: 'HEAD_OF_DEP',
-  INSTRUCTOR: 'INSTRUCTOR',
-  STUDENT: 'STUDENT'
+export  enum UserSchema {
+  ADMIN=  'ADMIN',
+  HEAD_OF_DEP = 'HEAD_OF_DEP',
+  INSTRUCTOR = 'INSTRUCTOR',
+  STUDENT = 'STUDENT'
 };

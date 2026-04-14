@@ -1,11 +1,12 @@
 import express from 'express';
-import { register, login, forgotPassword, verifyOTP, resetPassword } from '../controllers/authController.js';
+import { register, login, forgotPassword, verifyOTP, resetPassword } from '../Controllers/authController.js';
 import { protect, authorizeRoles } from '../middlewares/authMiddleware.js';
-
+import { validate } from '../middlewares/validateMiddleware.js';
+import { userRegisterSchema } from '../Validation/userValidation.js';
 const router = express.Router();
 
 //Public routes
-router.post('/register', register);
+router.post('/register',validate(userRegisterSchema), register);
 router.post('/login', login);
 router.post('/forgotPassword', forgotPassword);
 router.post('/verifyOTP', verifyOTP); 
