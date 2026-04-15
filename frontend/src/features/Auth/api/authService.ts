@@ -1,5 +1,12 @@
 import api from '@/shared/api/axiosApi';
-import type { LoginPayload, RegisterPayload, AuthResponse, ApiMessage } from '../types';
+import type { AxiosError } from 'axios';
+import type {
+  LoginPayload,
+  RegisterPayload,
+  AuthResponse,
+  ApiMessage,
+  OtpStepResponse,
+} from '../types';
 
 export const loginUser = async (
   credentials: LoginPayload,
@@ -8,22 +15,47 @@ export const loginUser = async (
   return response.data;
 };
 
-export const registerUser = async (
+export const registerStep1 = async (
   userData: RegisterPayload,
-): Promise<AuthResponse> => {
-  const response = await api.post<AuthResponse>('/register', userData);
-  return response.data;
-};
-
-export const sendRegisterOtp = async (email: string): Promise<ApiMessage> => {
-  const response = await api.post<ApiMessage>('/register/send-otp', { email });
+): Promise<OtpStepResponse> => {
+  const response = await api.post<OtpStepResponse>('/register', userData);
   return response.data;
 };
 
 export const verifyRegisterOtp = async (
   email: string,
   otp: string,
-): Promise<ApiMessage> => {
-  const response = await api.post<ApiMessage>('/register/verify-otp', { email, otp });
+): Promise<AuthResponse> => {
+  try {
+    const response = await api.post<AuthResponse>('/register/verify', { email, otp });
+    return response.data;
+  } catch (err) {
+    const error = err as AxiosError<{ error?: string; message?: string }>;
+    const serverMessage = error.response?.data?.error || error.response?.data?.message || '';
+    const isRouteMissing = error.response?.status === 404 || /route not found/i.test(serverMessage);
+
+    if (!isRouteMissing) {
+      throw err;
+    }
+
+    const legacyResponse = await api.post<AuthResponse>('/verifyOTP', { email, otp });
+    return legacyResponse.data;
+  }
+};
+
+export const forgotPasswordSendOtp = async (
+  email: string,
+): Promise<OtpStepResponse> => {
+  const response = await api.post<OtpStepResponse>('/forgotPassword', { email });
+  return response.data;
+};
+
+export const resetPasswordWithOtp = async (payload: {
+  email: string;
+  otp: string;
+  password: string;
+  confirmPassword: string;
+}): Promise<ApiMessage> => {
+  const response = await api.patch<ApiMessage>('/resetPassword', payload);
   return response.data;
 };

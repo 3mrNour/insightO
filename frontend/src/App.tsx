@@ -2,9 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import LoginPage from '@/features/Auth/pages/LoginPage'
 import RegisterPage from '@/features/Auth/pages/RegisterPage'
-import DashboardPlaceholder from '@/features/Auth/pages/DashboardPlaceholder.tsx'
+import ForgotPasswordPage from '@/features/Auth/pages/ForgotPasswordPage'
 import { MainLayout } from './layout/MainLayout'
-import FormBuilderPage from '@/features/FormBuilder/pages/FormBuilderPage'
 
 
 // import { Button } from '@/shared/components/ui/button'
@@ -23,11 +22,8 @@ function App() {
         <Route path="/" element={<Navigate to="/builder" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        {/* <Route path="/dashboard" element={<DashboardPlaceholder />} /> */}
-        <Route path="/dashboard" element={<MainLayout />}>
-          <Route index element={<Navigate to="/login" replace />} />
-        </Route>
-        <Route path="/login" element={<FormBuilderPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/dashboard" element={<MainLayout />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
 

@@ -1,16 +1,36 @@
 import express from 'express';
-import { register, login, forgotPassword, verifyOTP, resetPassword } from '../Controllers/authController.js';
+import {
+  register,
+  login,
+  forgotPassword,
+  completeRegister,
+  resetPassword,
+  registerStepOneResponse,
+  forgotPasswordStepOneResponse
+} from '../controllers/authController.js';
 import { protect, authorizeRoles } from '../middlewares/authMiddleware.js';
 import { validate } from '../middlewares/validateMiddleware.js';
 import { userRegisterSchema } from '../Validation/userValidation.js';
+import { sendOtpForUser, verifyOtp } from '../middlewares/otpMiddleware.js';
 const router = express.Router();
 
 //Public routes
-router.post('/register',validate(userRegisterSchema), register);
+router.post(
+  '/register',
+  validate(userRegisterSchema),
+  register,
+  sendOtpForUser('Your activation code (insightO)', 'Welcome to insightO! Your activation code is:'),
+  registerStepOneResponse
+);
+router.post('/register/verify', verifyOtp, completeRegister);
 router.post('/login', login);
-router.post('/forgotPassword', forgotPassword);
-router.post('/verifyOTP', verifyOTP); 
-router.patch('/resetPassword',resetPassword);
+router.post(
+  '/forgotPassword',
+  forgotPassword,
+  sendOtpForUser('Your Verification Code (insightO)', 'Your verification code is:'),
+  forgotPasswordStepOneResponse
+);
+router.patch('/resetPassword', verifyOtp, resetPassword);
 
 //Protected routes
 router.get('/profile', protect, (req, res) => {

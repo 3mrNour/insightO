@@ -19,7 +19,7 @@ export interface RegisterPayload {
   lastName: string;
   email: string;
   password: string;
-  nationalId: number;
+  nationalId: string;
   role: UserRole;
   departmentId?: string;
   academicYear?: number;
@@ -33,4 +33,14 @@ export interface AuthResponse {
 
 export interface ApiMessage {
   message: string;
+}
+
+export interface OtpStepResponse extends ApiMessage {
+  email: string;
+  status?: string;
+}
+
+export interface OtpFlowState {
+  pendingEmail: string | null;
+  flowType: 'register' | 'reset' | null;
 }

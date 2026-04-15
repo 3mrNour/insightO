@@ -1,8 +1,7 @@
-import type { Request, Response } from 'express';
-import User from '../Models/User_Schema.js';
+import type { NextFunction, Request, Response } from 'express';
+import User from '../models/User_Schema.js';
 import jwt from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
-import sendEmail from '../Utils/Email.js';
 
 const generateToken = (id: string, role: string) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET || 'fallback_secret', {
@@ -13,7 +12,7 @@ const generateToken = (id: string, role: string) => {
 
 // Register Controller
 
-export const register = async (req: Request, res: Response): Promise<void> => {
+export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { firstName, lastName, email, password, role, nationalId, departmentId, academicYear } = req.body;
 
@@ -38,43 +37,21 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       isVerified: false
     });
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    user.otp = otp;
-    user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); 
-    await user.save({ validateBeforeSave: false });
-
-    try {
-      await sendEmail({
-        email: user.email,
-        subject: 'Your activation code (insightO)',
-        message: `Welcome to insightO! Your activation code is: ${otp}.`
-      });
-
-      const token = generateToken(user._id.toString(), user.role);
-
-      res.status(201).json({
-        message: 'User registered successfully',
-        token,
-        user: {
-          id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role
-        }
-      });
-    } catch (error: any) {
-      if (error.name === 'ValidationError') {
-        const messages = Object.values(error.errors).map((val: any) => val.message);
-        res.status(400).json({ message: messages.join(', ') });
-        return;
-      }
-      res.status(500).json({ message: 'Server error during registration', error: error.message });
-    }
+    (req as Request & { otpUserId?: string; otpEmail?: string }).otpUserId = user._id.toString();
+    (req as Request & { otpUserId?: string; otpEmail?: string }).otpEmail = user.email;
+    return next();
 
   } catch (error: any) {
     res.status(500).json({ message: 'Server error during registration', error: error.message });
   }
+};
+
+export const registerStepOneResponse = async (req: Request, res: Response) => {
+  return res.status(201).json({
+    status: 'success',
+    message: 'Step 1 complete. OTP sent to your email',
+    email: (req as Request & { otpEmail?: string }).otpEmail || req.body.email
+  });
 };
 
 
@@ -122,8 +99,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
 // forget password Controller
 
-export const forgotPassword = async (req: Request, res: Response) => {
-
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
   const { email } = req.body;
 
   const user = await User.findOne({ email });
@@ -131,45 +107,42 @@ export const forgotPassword = async (req: Request, res: Response) => {
     return res.status(404).json({ status: 'fail', message: "Your email isn't registered with us" });
   }
 
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  (req as Request & { otpUserId?: string; otpEmail?: string }).otpUserId = user._id.toString();
+  (req as Request & { otpUserId?: string; otpEmail?: string }).otpEmail = user.email;
+  return next();
+};
 
-  user.otp = otp;
-  user.otpExpires = new Date(Date.now() + 300 * 1000);
-  await user.save({ validateBeforeSave: false });
-
-  try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Your Verification Code (insightO)',
-      message: `Your verification code is: ${otp}. `
-    });
-
-    res.status(200).json({ status: 'success', message: 'Verification code sent to your email' });
-  } catch (err) {
-    user.otp = undefined;
-    user.otpExpires = undefined;
-    await user.save({ validateBeforeSave: false });
-    return res.status(500).json({ status: 'error', message: 'There was an error sending the email, please try again' });
-  }
+export const forgotPasswordStepOneResponse = async (req: Request, res: Response) => {
+  return res.status(200).json({
+    status: 'success',
+    message: 'OTP sent to your email',
+    email: (req as Request & { otpEmail?: string }).otpEmail || req.body.email
+  });
 };
 
 
-// verify OTP Controller
-
-export const verifyOTP = async (req: Request, res: Response) => {
-
-  const { email, otp } = req.body;
-
-  const user = await User.findOne({ email }).select('+otp +otpExpires');
-  const isOtpExpired = Date.now() > (user?.otpExpires as Date).getTime()
-  if (!user || user.otp !== otp || isOtpExpired) {
-    return res.status(400).json({ message: 'Invalid or expired OTP' });
+export const completeRegister = async (req: Request, res: Response) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return res.status(404).json({ status: 'fail', message: "Your email isn't registered with us" });
   }
-  user.otp = undefined;
-  user.otpExpires = undefined;
+
+  user.isVerified = true;
   await user.save({ validateBeforeSave: false });
 
-  res.status(200).json({ status: 'success', message: 'OTP verified successfully, you can now change your password' });
+  const token = generateToken(user._id.toString(), user.role);
+  return res.status(200).json({
+    status: 'success',
+    message: 'Account verified successfully',
+    token,
+    user: {
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role
+    }
+  });
 };
 
 

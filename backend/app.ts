@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import { errorHandler } from './src/middlewares/errorHandler.js';
-import authRoutes from './src/Routes/authRoutes.js';
+import authRoutes from './src/routes/authRoutes.js';
 
 export function createApp() {
   const app = express();
@@ -15,7 +15,7 @@ export function createApp() {
   app.use('/api/', authRoutes);
 
   app.use((_req, _res, next) => {
-    const err = new Error('Not Found') as Error & { status: number };
+    const err = new Error('Route Not Found') as Error & { status: number };
     err.status = 404;
     next(err);
   });

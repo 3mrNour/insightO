@@ -25,7 +25,12 @@ import {
   type RegisterFormData,
   type OtpFormData,
 } from '../schemas/auth.schema';
-import { registerUser, clearError } from '../slices/authSlice';
+import {
+  clearError,
+  setPendingOtpState,
+  clearPendingOtpState,
+  setAuthenticatedSession,
+} from '../slices/authSlice';
 import * as authService from '../api/authService';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { USER_ROLES, type RegisterPayload } from '../types';
@@ -39,6 +44,29 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const OTP_COUNTDOWN = 60;
+
+type ApiErrorResponse = {
+  message?: string;
+  error?: string;
+};
+
+const buildRegisterPayload = (data: RegisterFormData): RegisterPayload => {
+  const trimmedDepartmentId = data.departmentId?.trim();
+  const parsedAcademicYear = Number(data.academicYear);
+
+  return {
+    firstName: data.firstName,
+    lastName: data.lastName,
+    email: data.email,
+    password: data.password,
+    nationalId: data.nationalId,
+    role: data.role,
+    ...(data.role !== 'ADMIN' && trimmedDepartmentId ? { departmentId: trimmedDepartmentId } : {}),
+    ...(data.role === 'STUDENT' && !Number.isNaN(parsedAcademicYear)
+      ? { academicYear: parsedAcademicYear }
+      : {}),
+  };
+};
 
 function useCountdown(initial: number) {
   const [seconds, setSeconds] = useState(0);
@@ -68,10 +96,11 @@ function useCountdown(initial: number) {
 export default function RegisterForm() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { isLoading, isError, errorMessage } = useAppSelector((s) => s.auth);
+  const { isLoading, isError, errorMessage, pendingEmail } = useAppSelector((s) => s.auth);
 
   const [step, setStep] = useState<1 | 2>(1);
   const [formData, setFormData] = useState<RegisterFormData | null>(null);
+  const [otpEmail, setOtpEmail] = useState('');
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const timer = useCountdown(OTP_COUNTDOWN);
@@ -95,18 +124,40 @@ export default function RegisterForm() {
     }
   }, [isError, errorMessage, dispatch]);
 
+  useEffect(() => {
+    return () => {
+      dispatch(clearPendingOtpState());
+    };
+  }, [dispatch]);
+
   // ── Step 1 submit → send OTP ──────────────────────────────────────────────
   const onStep1Submit = async (data: RegisterFormData) => {
     setIsSendingOtp(true);
     try {
-      await authService.sendRegisterOtp(data.email);
+      const payload = buildRegisterPayload(data);
+      const response = await authService.registerStep1(payload);
+      const normalizedEmail = (response.email || data.email).trim().toLowerCase();
       setFormData(data);
+      setOtpEmail(normalizedEmail);
+      dispatch(setPendingOtpState({ email: normalizedEmail, flowType: 'register' }));
       setStep(2);
       timer.start();
-      toast.success('Verification code sent to your email');
+      toast.success('OTP sent to your email');
     } catch (err) {
-      const error = err as AxiosError<{ message: string }>;
-      toast.error(error.response?.data?.message || 'Failed to send verification code');
+      const error = err as AxiosError<ApiErrorResponse>;
+      const message = error.response?.data?.message;
+      const details = error.response?.data?.error;
+      const duplicateNationalId = details?.includes('nationalId_1');
+      const duplicateEmail = details?.includes('email_1');
+      toast.error(
+        duplicateNationalId
+          ? 'This national ID is already registered'
+          : duplicateEmail
+            ? 'This email is already registered'
+            : message === 'Server error during registration' && details
+          ? details
+          : message || 'Failed to register',
+      );
     } finally {
       setIsSendingOtp(false);
     }
@@ -117,13 +168,13 @@ export default function RegisterForm() {
     if (!formData || timer.seconds > 0) return;
     setIsSendingOtp(true);
     try {
-      await authService.sendRegisterOtp(formData.email);
+      await authService.forgotPasswordSendOtp(otpEmail || formData.email.trim().toLowerCase());
       timer.start();
       step2Form.reset();
       toast.success('New code sent');
     } catch (err) {
-      const error = err as AxiosError<{ message: string }>;
-      toast.error(error.response?.data?.message || 'Failed to resend code');
+      const error = err as AxiosError<ApiErrorResponse>;
+      toast.error(error.response?.data?.message || error.response?.data?.error || 'Failed to resend code');
     } finally {
       setIsSendingOtp(false);
     }
@@ -134,25 +185,17 @@ export default function RegisterForm() {
     if (!formData) return;
     setIsVerifying(true);
     try {
-      await authService.verifyRegisterOtp(formData.email, data.otp);
-
-      const payload: RegisterPayload = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-        nationalId: Number(formData.nationalId),
-        role: formData.role,
-        ...(formData.role !== 'ADMIN' && { departmentId: formData.departmentId }),
-        ...(formData.role === 'STUDENT' && { academicYear: Number(formData.academicYear) }),
-      };
-      const result = await dispatch(registerUser(payload));
-      if (registerUser.fulfilled.match(result)) {
-        navigate('/dashboard', { replace: true });
-      }
+      const normalizedOtp = data.otp.trim().replace(/\s+/g, '');
+      const response = await authService.verifyRegisterOtp(
+        (pendingEmail || otpEmail || formData.email).trim().toLowerCase(),
+        normalizedOtp,
+      );
+      dispatch(setAuthenticatedSession(response));
+      dispatch(clearPendingOtpState());
+      navigate('/dashboard', { replace: true });
     } catch (err) {
-      const error = err as AxiosError<{ message: string }>;
-      toast.error(error.response?.data?.message || 'Verification failed');
+      const error = err as AxiosError<ApiErrorResponse>;
+      toast.error(error.response?.data?.message || error.response?.data?.error || 'Verification failed');
     } finally {
       setIsVerifying(false);
     }
@@ -450,7 +493,10 @@ export default function RegisterForm() {
             <div className="flex gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => setStep(1)}
+                onClick={() => {
+                  dispatch(clearPendingOtpState());
+                  setStep(1);
+                }}
                 disabled={busy}
                 className="px-6 py-4 bg-slate-100 dark:bg-surface-dark hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-all flex items-center gap-2 disabled:opacity-60"
               >
