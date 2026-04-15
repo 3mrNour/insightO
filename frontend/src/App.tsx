@@ -3,6 +3,8 @@ import { Toaster } from 'sonner'
 import LoginPage from '@/features/Auth/pages/LoginPage'
 import RegisterPage from '@/features/Auth/pages/RegisterPage'
 import DashboardPlaceholder from '@/features/Auth/pages/DashboardPlaceholder.tsx'
+import { MainLayout } from './layout/MainLayout'
+import FormBuilderPage from '@/features/FormBuilder/pages/FormBuilderPage'
 
 
 // import { Button } from '@/shared/components/ui/button'
@@ -18,13 +20,18 @@ function App() {
   return (
     <>
       <Routes>
+        <Route path="/" element={<Navigate to="/builder" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/dashboard" element={<DashboardPlaceholder />} />
+        {/* <Route path="/dashboard" element={<DashboardPlaceholder />} /> */}
+        <Route path="/dashboard" element={<MainLayout />}>
+          <Route index element={<Navigate to="/login" replace />} />
+        </Route>
+        <Route path="/login" element={<FormBuilderPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
 
-      
+
 
 
       {/* ── Sonner Toaster ─────────────────────────────────────── */}
@@ -36,7 +43,7 @@ function App() {
             fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
           },
         }}
-      /> 
+      />
       {/* // <MainLayout /> */}
     </>
   )

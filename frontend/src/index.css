@@ -87,13 +87,13 @@
   }
 }
 
-/* ── Auth Layout ─────────────────────────────────────────────────────────────── */
+/* ── insightO Brand Pattern ─────────────────────────────────────────────────────────────── */
 
 .brand-pattern {
-  background-image:
-    linear-gradient(rgba(79, 70, 229, 0.15) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(79, 70, 229, 0.15) 1px, transparent 1px);
-  background-size: 24px 24px;
-  mask-image: linear-gradient(to bottom, black 0%, transparent 80%);
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 80%);
+  background-color: #0f111a;
+  background-image: 
+    linear-gradient(rgba(79, 70, 229, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79, 70, 229, 0.05) 1px, transparent 1px);
+  background-size: 30px 30px;
 }
+
