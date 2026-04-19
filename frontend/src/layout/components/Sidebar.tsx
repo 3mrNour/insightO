@@ -10,9 +10,9 @@ export interface SidebarProps extends React.HTMLAttributes<HTMLElement> {}
 export function Sidebar({ className, ...props }: SidebarProps) {
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "insightO Builder", href: "/dashboard/builder", icon: FileText },
-    { name: "Analytics", href: "/analytics", icon: BarChart3 },
-    { name: "Settings", href: "/settings", icon: Settings },
+    { name: "Forms & Surveys", href: "/dashboard/forms-surveys", icon: FileText },
+    { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
+    { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ]
 
   return (

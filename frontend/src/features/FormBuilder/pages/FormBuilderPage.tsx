@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo } from "react"
+import { useNavigate } from "react-router-dom"
 import { 
   DndContext, 
   closestCenter, 
@@ -63,6 +64,7 @@ const INITIAL_QUESTIONS: Question[] = [
 ]
 
 export default function FormBuilderPage() {
+  const navigate = useNavigate()
   const [questions, setQuestions] = useState<Question[]>(INITIAL_QUESTIONS)
   const [activeId, setActiveId] = useState<string | null>("q1")
   const [formTitle, setFormTitle] = useState("Q1 Manager 360 Review")
@@ -136,7 +138,12 @@ export default function FormBuilderPage() {
       {/* Header */}
       <header className="shrink-0 flex h-14 w-full items-center justify-between border-b border-white/5 bg-[#0a0a0f] px-4 lg:px-6 z-20 relative">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-[#2d2a42] text-slate-400 transition-colors">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/dashboard/forms-surveys")}
+            className="h-8 w-8 rounded-lg hover:bg-[#2d2a42] text-slate-400 transition-colors"
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="h-6 w-px bg-white/10"></div>
